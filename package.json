@@ -1,0 +1,23 @@
+{
+  "name": "osu-fm",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.5",
+    "@types/bun": "latest",
+    "semantic-release": "^24.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "fast-xml-parser": "^4.4.0",
+    "loglevel": "^1.9.1",
+    "open": "^10.1.0"
+  },
+  "scripts": {
+    "build": "bun build --compile --minify --sourcemap src/services/osu/osu.ts --outfile dist/osu-fm && bun build --compile --minify --sourcemap src/services/lastFm/auth.ts --outfile dist/auth-lastfm"
+  }
+}
