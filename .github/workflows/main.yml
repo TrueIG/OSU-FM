@@ -1,0 +1,47 @@
+name: Stable-release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1.2.1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: bun run build
+        env:
+          OSU_CLIENT_SECRET: ${{ secrets.OSU_CLIENT_SECRET }}
+          OSU_CLIENT_ID: ${{ secrets.OSU_CLIENT_ID }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          title: "Stable Build"
+          files: |
+            dist/*
