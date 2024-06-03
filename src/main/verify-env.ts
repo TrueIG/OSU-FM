@@ -26,6 +26,8 @@ const OSU_USER_ID = getEnvVariable("OSU_USER_ID");
 
 const LASTFM_API_URL = "https://ws.audioscrobbler.com/2.0/";
 
+console.log("Osu user ID:"+OSU_USER_ID)
+
 log.setLevel("INFO");
 
 export {
