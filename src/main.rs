@@ -1,8 +1,11 @@
-use std::{path::Path, time::Duration};
+use std::{
+    fs::{self},
+    time::Duration,
+};
 
 use api::{lastfm::lastfm::LastFmService, osu::osu::OsuService};
 
-use osu_fm::{create_file, read_file, Config};
+use osu_fm::{create_info, write_info, Config, Infos};
 use tokio::time::sleep;
 
 mod api;
@@ -18,11 +21,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.osu_user_id,
     );
 
-    if !Path::new("osu-token.txt").exists() || !Path::new("lastfm-sk.txt").exists() {
-        first_entry(&osu_service, &mut lastfm_service).await;
-    }
+    let path_json = "infos.json";
 
-    let _ = monitor_beatmap_updates(&osu_service, &mut lastfm_service).await;
+    let mut infos: Infos = if let Ok(content) = fs::read_to_string(path_json) {
+        serde_json::from_str(&content)?
+    } else {
+        create_info(
+            lastfm_service.init().await.unwrap().into(),
+            osu_service
+                .get_auth_token()
+                .await
+                .unwrap()
+                .access_token
+                .into(),
+        )
+        .unwrap()
+    };
+
+    let _ = write_info(&serde_json::to_string_pretty(&infos)?);
+    let _ = monitor_beatmap_updates(&osu_service, &mut lastfm_service, &mut infos).await;
 
     Ok(())
 }
@@ -30,22 +47,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn monitor_beatmap_updates(
     osu_service: &OsuService,
     lastfm_service: &mut LastFmService,
+    infos: &mut Infos,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let token = read_file("osu-token.txt")?;
-    let sk = read_file("lastfm-sk.txt")?;
-
-    let mut last_track = read_file("last_track.txt").unwrap_or_default();
-
     loop {
-        match osu_service.get_beatmap(&token).await {
-            Ok(Some(beatmap)) if last_track != beatmap.id.to_string() => {
-                last_track = beatmap.id.to_string();
-                create_file("last_track.txt", &last_track);
+        match osu_service.get_beatmap(&infos.token).await {
+            Ok(Some(beatmap)) if infos.last_track != Some(beatmap.id) => {
+                infos.last_track = Some(beatmap.id);
+                let _ = write_info(&serde_json::to_string_pretty(&infos)?);
                 let result = lastfm_service
                     .scrobbe(
                         &beatmap.beatmapset.artist_unicode,
                         &beatmap.beatmapset.title_unicode,
-                        &sk,
+                        &infos.sk,
                     )
                     .await;
 
@@ -57,12 +70,4 @@ async fn monitor_beatmap_updates(
 
         sleep(Duration::from_secs(10)).await;
     }
-}
-
-async fn first_entry(osu_service: &OsuService, lastfm_service: &mut LastFmService) {
-    let lastfm_sk = lastfm_service.init().await;
-    create_file("lastfm-sk.txt", &lastfm_sk.unwrap());
-
-    let osu_token = osu_service.get_auth_token().await;
-    create_file("osu-token.txt", &osu_token.unwrap().access_token);
 }

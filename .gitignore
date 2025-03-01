@@ -25,4 +25,4 @@ Cargo.lock
 /target
 
 .env
-*.txt
+infos.json

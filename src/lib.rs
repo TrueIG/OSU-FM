@@ -1,13 +1,6 @@
 use dotenv::dotenv;
-use std::{env, fs};
-
-pub fn create_file(file_name: &str, content: &str) {
-    let _ = fs::write(file_name, content);
-}
-
-pub fn read_file(file_name: &str) -> Result<String, std::io::Error> {
-    fs::read_to_string(file_name)
-}
+use serde::{Deserialize, Serialize};
+use std::{env, fs::File, io::Write};
 
 pub struct Config {
     pub osu_client_secret: String,
@@ -15,6 +8,13 @@ pub struct Config {
     pub osu_client_id: String,
     pub lastfm_api_key: String,
     pub lastfm_shared_secret: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Infos {
+    pub last_track: Option<i64>,
+    pub sk: Box<str>,
+    pub token: Box<str>,
 }
 
 impl Config {
@@ -29,4 +29,23 @@ impl Config {
             lastfm_shared_secret: env::var("LASTFM_SHARED_SECRET")?,
         })
     }
+}
+
+pub fn create_info(sk: Box<str>, token: Box<str>) -> Result<Infos, Box<dyn std::error::Error>> {
+    let infos = Infos {
+        sk,
+        token,
+        last_track: None,
+    };
+    let data = serde_json::to_string_pretty(&infos)?;
+
+    let _ = write_info(&data);
+
+    Ok(infos)
+}
+
+pub fn write_info(data: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = File::create("infos.json")?;
+    file.write_all(data.as_bytes())?;
+    Ok(())
 }
