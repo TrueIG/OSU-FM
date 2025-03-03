@@ -1,11 +1,13 @@
 use std::{
     fs::{self},
+    sync::Arc,
     time::Duration,
 };
 
 use api::{lastfm::lastfm::LastFmService, osu::osu::OsuService};
 
 use osu_fm::{create_info, write_info, Config, Infos};
+use reqwest::Client;
 use tokio::time::sleep;
 
 mod api;
@@ -14,8 +16,16 @@ mod api;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::from_env()?;
 
-    let mut lastfm_service = LastFmService::new(config.lastfm_api_key, config.lastfm_shared_secret);
+    let client = Arc::new(Client::new());
+
+    let mut lastfm_service = LastFmService::new(
+        client.clone(),
+        config.lastfm_api_key,
+        config.lastfm_shared_secret,
+    );
+
     let osu_service = OsuService::new(
+        client.clone(),
         config.osu_client_id,
         config.osu_client_secret,
         config.osu_user_id,
