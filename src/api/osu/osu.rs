@@ -1,10 +1,10 @@
 use reqwest::Client;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, rc::Rc};
 
 use super::models::{Beatmap, OAuthTokenResponse};
 
 pub struct OsuService {
-    client: Arc<Client>,
+    client: Rc<Client>,
     client_id: String,
     client_secret: String,
     user_id: String,
@@ -12,7 +12,7 @@ pub struct OsuService {
 
 impl OsuService {
     pub fn new(
-        client: Arc<Client>,
+        client: Rc<Client>,
         client_id: String,
         client_secret: String,
         user_id: String,

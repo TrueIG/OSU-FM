@@ -1,6 +1,6 @@
 use std::{
     fs::{self},
-    sync::Arc,
+    rc::Rc,
     time::Duration,
 };
 
@@ -12,11 +12,11 @@ use tokio::time::sleep;
 
 mod api;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::from_env()?;
 
-    let client = Arc::new(Client::new());
+    let client = Rc::new(Client::new());
 
     let mut lastfm_service = LastFmService::new(
         client.clone(),

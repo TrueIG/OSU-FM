@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    sync::Arc,
+    rc::Rc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
@@ -13,14 +13,14 @@ use reqwest::Client;
 use webbrowser::{self, open};
 
 pub struct LastFmService {
-    client: Arc<Client>,
+    client: Rc<Client>,
     api_key: String,
     shared_secret: String,
     token: Option<String>,
 }
 
 impl LastFmService {
-    pub fn new(client: Arc<Client>, api_key: String, shared_secret: String) -> Self {
+    pub fn new(client: Rc<Client>, api_key: String, shared_secret: String) -> Self {
         Self {
             client,
             api_key,
