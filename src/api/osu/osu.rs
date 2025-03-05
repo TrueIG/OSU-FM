@@ -5,17 +5,17 @@ use super::models::{Beatmap, OAuthTokenResponse};
 
 pub struct OsuService {
     client: Rc<Client>,
-    client_id: String,
-    client_secret: String,
-    user_id: String,
+    client_id: Box<str>,
+    client_secret: Box<str>,
+    user_id: Box<str>,
 }
 
 impl OsuService {
     pub fn new(
         client: Rc<Client>,
-        client_id: String,
-        client_secret: String,
-        user_id: String,
+        client_id: Box<str>,
+        client_secret: Box<str>,
+        user_id: Box<str>,
     ) -> Self {
         Self {
             client,
@@ -57,12 +57,12 @@ impl OsuService {
         Ok(res.into_iter().next())
     }
 
-    fn get_params(&self) -> HashMap<String, String> {
+    fn get_params(&self) -> HashMap<Box<str>, Box<str>> {
         HashMap::from([
-            ("client_id".to_string(), self.client_id.to_string()),
-            ("client_secret".to_string(), self.client_secret.to_string()),
-            ("grant_type".to_string(), "client_credentials".to_string()),
-            ("scope".to_string(), "public".to_string()),
+            ("client_id".into(), self.client_id.clone()),
+            ("client_secret".into(), self.client_secret.clone()),
+            ("grant_type".into(), "client_credentials".into()),
+            ("scope".into(), "public".into()),
         ])
     }
 }

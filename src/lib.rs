@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 use std::{env, fs::File, io::Write};
 
 pub struct Config {
-    pub osu_client_secret: String,
-    pub osu_user_id: String,
-    pub osu_client_id: String,
-    pub lastfm_api_key: String,
-    pub lastfm_shared_secret: String,
+    pub osu_client_secret: Box<str>,
+    pub osu_user_id: Box<str>,
+    pub osu_client_id: Box<str>,
+    pub lastfm_api_key: Box<str>,
+    pub lastfm_shared_secret: Box<str>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -22,11 +22,11 @@ impl Config {
         dotenv().ok();
 
         Ok(Self {
-            osu_client_secret: env::var("OSU_CLIENT_SECRET")?,
-            osu_user_id: env::var("OSU_USER_ID")?,
-            osu_client_id: env::var("OSU_CLIENT_ID")?,
-            lastfm_api_key: env::var("LASTFM_API_KEY")?,
-            lastfm_shared_secret: env::var("LASTFM_SHARED_SECRET")?,
+            osu_client_secret: env::var("OSU_CLIENT_SECRET")?.into(),
+            osu_user_id: env::var("OSU_USER_ID")?.into(),
+            osu_client_id: env::var("OSU_CLIENT_ID")?.into(),
+            lastfm_api_key: env::var("LASTFM_API_KEY")?.into(),
+            lastfm_shared_secret: env::var("LASTFM_SHARED_SECRET")?.into(),
         })
     }
 }

@@ -14,13 +14,13 @@ use webbrowser::{self, open};
 
 pub struct LastFmService {
     client: Rc<Client>,
-    api_key: String,
-    shared_secret: String,
-    token: Option<String>,
+    api_key: Box<str>,
+    shared_secret: Box<str>,
+    token: Option<Box<str>>,
 }
 
 impl LastFmService {
-    pub fn new(client: Rc<Client>, api_key: String, shared_secret: String) -> Self {
+    pub fn new(client: Rc<Client>, api_key: Box<str>, shared_secret: Box<str>) -> Self {
         Self {
             client,
             api_key,
@@ -29,14 +29,14 @@ impl LastFmService {
         }
     }
 
-    fn generate_signature(&self, params: &mut HashMap<String, String>) {
-        let mut sorted_keys: Vec<String> = params.keys().cloned().collect();
+    fn generate_signature(&self, params: &mut HashMap<Box<str>, Box<str>>) {
+        let mut sorted_keys: Vec<Box<str>> = params.keys().cloned().collect();
         sorted_keys.sort();
 
         let mut string_to_hash = String::new();
 
         for key in sorted_keys {
-            if key == "format" {
+            if key.as_ref() == "format" {
                 continue;
             }
             string_to_hash.push_str(&key);
@@ -51,17 +51,17 @@ impl LastFmService {
         hasher.update(string_to_hash);
 
         let api_sig = format!("{:x}", hasher.finalize());
-        params.insert("api_sig".to_string(), api_sig);
+        params.insert("api_sig".into(), api_sig.into());
     }
 
-    async fn get_session(&self) -> Result<String, Box<dyn std::error::Error>> {
+    async fn get_session(&self) -> Result<Box<str>, Box<dyn std::error::Error>> {
         let token = self.token.clone();
 
-        let mut params = HashMap::from([
-            ("method".to_string(), "auth.getSession".to_string()),
-            ("token".to_string(), token.unwrap()),
-            ("api_key".to_string(), self.api_key.clone()),
-            ("format".to_string(), "json".to_string()),
+        let mut params: HashMap<Box<str>, Box<str>> = HashMap::from([
+            ("method".into(), "auth.getSession".into()),
+            ("token".into(), token.unwrap()),
+            ("api_key".into(), self.api_key.clone()),
+            ("format".into(), "json".into()),
         ]);
 
         self.generate_signature(&mut params);
@@ -80,7 +80,7 @@ impl LastFmService {
 
             match response {
                 SessionResponse::Success { session } => {
-                    return Ok(session.key);
+                    return Ok(session.key.into());
                 }
                 SessionResponse::Error { error, message } => {
                     eprintln!("Error {}: {}", error, message);
@@ -105,7 +105,7 @@ impl LastFmService {
             .await?
             .token;
 
-        self.token = Some(token);
+        self.token = Some(token.into());
 
         Ok(())
     }
@@ -132,13 +132,13 @@ impl LastFmService {
             .expect("Time went backwards")
             .as_secs();
 
-        let mut params = HashMap::from([
-            ("method".to_string(), "track.scrobble".to_string()),
-            ("artist".to_string(), artist.to_string()),
-            ("track".to_string(), track.to_string()),
-            ("api_key".to_string(), self.api_key.clone()),
-            ("sk".to_string(), sk.to_string()),
-            ("timestamp".to_string(), timestamp.to_string()),
+        let mut params: HashMap<Box<str>, Box<str>> = HashMap::from([
+            ("method".into(), "track.scrobble".into()),
+            ("artist".into(), artist.into()),
+            ("track".into(), track.into()),
+            ("api_key".into(), self.api_key.clone()),
+            ("sk".into(), sk.into()),
+            ("timestamp".into(), timestamp.to_string().into()),
         ]);
 
         self.generate_signature(&mut params);
@@ -152,7 +152,7 @@ impl LastFmService {
         Ok(())
     }
 
-    pub async fn init(&mut self) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn init(&mut self) -> Result<Box<str>, Box<dyn std::error::Error>> {
         let _ = self.get_token().await;
         let _ = self.get_user_authorization().await;
         let response = self.get_session().await?;
