@@ -11,10 +11,21 @@ pub struct Vars {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Infos {
+pub struct Config {
+    pub osu: OsuConfig,
+    pub lastfm: LastfmConfig,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct OsuConfig {
     pub last_track: Option<i64>,
-    pub sk: Box<str>,
+
     pub token: Box<str>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LastfmConfig {
+    pub sk: Box<str>,
 }
 
 impl Vars {
@@ -31,21 +42,23 @@ impl Vars {
     }
 }
 
-pub fn create_info(sk: Box<str>, token: Box<str>) -> Result<Infos, Box<dyn std::error::Error>> {
-    let infos = Infos {
-        sk,
-        token,
-        last_track: None,
+pub fn create_config(sk: Box<str>, token: Box<str>) -> Result<Config, Box<dyn std::error::Error>> {
+    let config = Config {
+        lastfm: LastfmConfig { sk },
+        osu: OsuConfig {
+            token,
+            last_track: None,
+        },
     };
-    let data = serde_json::to_string_pretty(&infos)?;
+    let data = serde_json::to_string_pretty(&config)?;
 
-    let _ = write_info(&data);
+    let _ = write_config(&data);
 
-    Ok(infos)
+    Ok(config)
 }
 
-pub fn write_info(data: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut file = File::create("infos.json")?;
+pub fn write_config(data: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = File::create("config.json")?;
     file.write_all(data.as_bytes())?;
     Ok(())
 }
