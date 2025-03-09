@@ -2,7 +2,7 @@ use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use std::{env, fs::File, io::Write};
 
-pub struct Config {
+pub struct Vars {
     pub osu_client_secret: Box<str>,
     pub osu_user_id: Box<str>,
     pub osu_client_id: Box<str>,
@@ -17,7 +17,7 @@ pub struct Infos {
     pub token: Box<str>,
 }
 
-impl Config {
+impl Vars {
     pub fn from_env() -> Result<Self, env::VarError> {
         dotenv().ok();
 
