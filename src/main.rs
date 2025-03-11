@@ -33,20 +33,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = "config.json";
 
+    let osu_token: String = osu_service.get_auth_token().await.unwrap().access_token;
+
     let mut configs: Config = if let Ok(content) = fs::read_to_string(config) {
         serde_json::from_str(&content)?
     } else {
         create_config(
-            lastfm_service.init().await.unwrap().into(),
-            osu_service
-                .get_auth_token()
-                .await
-                .unwrap()
-                .access_token
-                .into(),
+            lastfm_service.init().await.unwrap(),
+            osu_token.clone().into(),
         )
         .unwrap()
     };
+
+    configs.osu.token = osu_token.into();
 
     let _ = write_config(&serde_json::to_string_pretty(&configs)?);
     let _ = monitor_beatmap_updates(&osu_service, &mut lastfm_service, &mut configs).await;
