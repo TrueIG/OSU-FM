@@ -14,10 +14,14 @@ mod api;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Starting OSU-FM");
+
+    println!("Reading environment variables");
     let vars = Vars::from_env()?;
 
     let client = Rc::new(Client::new());
 
+    println!("Creating services");
     let mut lastfm_service = LastFmService::new(
         client.clone(),
         vars.lastfm_api_key,
@@ -48,6 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     configs.osu.token = osu_token.into();
 
     let _ = write_config(&serde_json::to_string_pretty(&configs)?);
+    println!("Waiting for new beatmaps");
     let _ = monitor_beatmap_updates(&osu_service, &mut lastfm_service, &mut configs).await;
 
     Ok(())
@@ -63,7 +68,7 @@ async fn monitor_beatmap_updates(
             Ok(Some(beatmap)) if config.osu.last_track != Some(beatmap.id) => {
                 config.osu.last_track = Some(beatmap.id);
                 let _ = write_config(&serde_json::to_string_pretty(&config)?);
-                let result = lastfm_service
+                let _result = lastfm_service
                     .scrobbe(
                         &beatmap.beatmapset.artist_unicode,
                         &beatmap.beatmapset.title_unicode,
@@ -71,7 +76,10 @@ async fn monitor_beatmap_updates(
                     )
                     .await;
 
-                println!("{:#?}", result);
+                println!(
+                    "New scrobbe!\nArtist: {}\nTitle: {}",
+                    &beatmap.beatmapset.artist_unicode, &beatmap.beatmapset.title_unicode,
+                );
             }
             Ok(_) => {}
             Err(e) => eprintln!("{}", e),

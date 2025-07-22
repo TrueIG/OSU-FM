@@ -66,6 +66,7 @@ impl LastFmService {
 
         self.generate_signature(&mut params);
 
+        println!("Waiting user authorization");
         loop {
             let response = self
                 .client
@@ -76,14 +77,12 @@ impl LastFmService {
                 .json()
                 .await?;
 
-            println!("result {:#?}", response);
-
             match response {
                 SessionResponse::Success { session } => {
+                    println!("Authorization success");
                     return Ok(session.key.into());
                 }
                 SessionResponse::Error { error, message } => {
-                    eprintln!("Error {}: {}", error, message);
                     sleep(Duration::from_secs(2)).await;
                 }
             }
@@ -145,9 +144,7 @@ impl LastFmService {
 
         let url = "https://ws.audioscrobbler.com/2.0/";
 
-        let response = self.client.post(url).form(&params).send().await?;
-
-        println!("{:#?}", response);
+        let _response = self.client.post(url).form(&params).send().await?;
 
         Ok(())
     }
