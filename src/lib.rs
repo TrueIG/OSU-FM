@@ -33,13 +33,20 @@ impl Vars {
         dotenv().ok();
 
         Ok(Self {
-            osu_client_secret: env::var("OSU_CLIENT_SECRET")?.into(),
-            osu_user_id: env::var("OSU_USER_ID")?.into(),
-            osu_client_id: env::var("OSU_CLIENT_ID")?.into(),
-            lastfm_api_key: env::var("LASTFM_API_KEY")?.into(),
-            lastfm_shared_secret: env::var("LASTFM_SHARED_SECRET")?.into(),
+            osu_client_secret: get_var("OSU_CLIENT_SECRET")?.into(),
+            osu_user_id: get_var("OSU_USER_ID")?.into(),
+            osu_client_id: get_var("OSU_CLIENT_ID")?.into(),
+            lastfm_api_key: get_var("LASTFM_API_KEY")?.into(),
+            lastfm_shared_secret: get_var("LASTFM_SHARED_SECRET")?.into(),
         })
     }
+}
+
+fn get_var(name: &str) -> Result<String, env::VarError> {
+    env::var(name).map_err(|e| {
+        eprintln!("Error to get {name}: {e}");
+        e
+    })
 }
 
 pub fn create_config(sk: Box<str>, token: Box<str>) -> Result<Config, Box<dyn std::error::Error>> {
