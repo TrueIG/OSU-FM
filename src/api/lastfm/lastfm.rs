@@ -66,7 +66,6 @@ impl LastFmService {
 
         self.generate_signature(&mut params);
 
-        println!("Waiting user authorization");
         loop {
             let response = self
                 .client
@@ -79,7 +78,6 @@ impl LastFmService {
 
             match response {
                 SessionResponse::Success { session } => {
-                    println!("Authorization success");
                     return Ok(session.key.into());
                 }
                 SessionResponse::Error { error, message } => {
