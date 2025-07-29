@@ -1,7 +1,21 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct OAuthTokenResponse {
+#[serde(untagged)]
+pub enum OAuthTokenResponse {
+    Success(OAuthTokenSuccess),
+    Error(OAuthTokenError),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct OAuthTokenError {
+    pub error: String,
+    pub error_description: String,
+    pub message: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct OAuthTokenSuccess {
     pub token_type: String,
     pub expires_in: i32,
     pub access_token: String,
