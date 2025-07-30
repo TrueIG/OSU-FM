@@ -6,16 +6,39 @@ use std::{
 
 use api::{lastfm::lastfm::LastFmService, osu::osu::OsuService};
 
-use osu_fm::{create_config, write_config, Config, Vars};
+use osu_fm::{create_config, write_config, Config as CF, Vars};
 use reqwest::Client;
+use simplelog::*;
 use spinoff::{spinners, Color, Spinner};
+use std::fs::File;
 use tokio::time::sleep;
+
+use crate::api::osu::models::OAuthTokenResponse;
 
 mod api;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Starting OSU-FM");
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            LevelFilter::Info,
+            Config::default(),
+            TerminalMode::Mixed,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            LevelFilter::Info,
+            Config::default(),
+            File::options()
+                .append(true)
+                .create(true)
+                .open("log.txt")
+                .unwrap(),
+        ),
+    ])
+    .unwrap();
+
+    log::info!("Starting OSU-FM");
 
     let mut sp = Spinner::new(spinners::Dots, "Reading environment variables...", None);
     let vars = Vars::from_env()?;
@@ -35,11 +58,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         vars.osu_client_secret,
         vars.osu_user_id,
     );
+
     sp.success("Services success!");
 
-    let osu_token: String = osu_service.get_auth_token().await.unwrap().access_token;
+    let osu_token: String = match osu_service.get_auth_token().await.unwrap() {
+        OAuthTokenResponse::Success(token) => token.access_token,
+        OAuthTokenResponse::Error(err) => {
+            log::error!("{:?}", err);
+            panic!(
+                "\nError: {}\nDescription: {}\nNote: Check if `OSU_CLIENT_ID` and `OSU_CLIENT_SECRET` are correctly set in the environment.",
+                err.error, err.error_description
+            );
+        }
+    };
 
-    let mut configs: Config = if let Ok(content) = fs::read_to_string("config.json") {
+    let mut configs: CF = if let Ok(content) = fs::read_to_string("config.json") {
         serde_json::from_str(&content)?
     } else {
         let mut sp = Spinner::new(spinners::Dots, "Waiting user authorization...", Color::Blue);
@@ -63,7 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn monitor_beatmap_updates(
     osu_service: &OsuService,
     lastfm_service: &mut LastFmService,
-    config: &mut Config,
+    config: &mut CF,
 ) -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let mut spinner =
