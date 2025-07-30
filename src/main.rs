@@ -113,11 +113,12 @@ async fn monitor_beatmap_updates(
                     )
                     .await;
 
-                spinner.info("New Scrobbe");
-                println!(
+                spinner.info("New Scrobbe!");
+                log::info!(
                     " Artist: {}\n󰎇 Title: {}",
-                    &beatmap.beatmapset.artist_unicode, &beatmap.beatmapset.title_unicode,
-                );
+                    &beatmap.beatmapset.artist_unicode,
+                    &beatmap.beatmapset.title_unicode,
+                )
             }
             Ok(_) => {}
             Err(e) => eprintln!("{}", e),
