@@ -1,7 +1,9 @@
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use std::{env, fs::File, io::Write};
+use thiserror::Error;
 
+#[derive(Debug)]
 pub struct Vars {
     pub osu_client_secret: Box<str>,
     pub osu_user_id: Box<str>,
@@ -28,9 +30,23 @@ pub struct LastfmConfig {
     pub sk: Box<str>,
 }
 
+#[derive(Debug, Error)]
+pub enum EnvVarError {
+    #[error("Failed to get env var '{0}': {1}")]
+    MissingVar(String, #[source] env::VarError),
+}
+
+impl EnvVarError {
+    pub fn name(&self) -> &str {
+        match self {
+            EnvVarError::MissingVar(name, _) => name,
+        }
+    }
+}
+
 impl Vars {
-    pub fn from_env() -> Result<Self, env::VarError> {
-        dotenv().ok();
+    pub fn from_env() -> Result<Self, EnvVarError> {
+        dotenv::dotenv().ok();
 
         Ok(Self {
             osu_client_secret: get_var("OSU_CLIENT_SECRET")?.into(),
@@ -42,11 +58,8 @@ impl Vars {
     }
 }
 
-fn get_var(name: &str) -> Result<String, env::VarError> {
-    env::var(name).map_err(|e| {
-        eprintln!("Error to get {name}: {e}");
-        e
-    })
+fn get_var(name: &str) -> Result<String, EnvVarError> {
+    env::var(name).map_err(|e| EnvVarError::MissingVar(name.to_string(), e))
 }
 
 pub fn create_config(

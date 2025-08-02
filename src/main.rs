@@ -42,7 +42,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut sp =
         Spinner::new(spinners::Dots, "Reading environment variables...", None);
-    let vars = Vars::from_env()?;
+    let vars = match Vars::from_env() {
+        Ok(vars) => vars,
+        Err(e) => {
+            sp.fail("Enviroment variables fails");
+            log::error!("Missing variable: {}", e.name());
+            std::process::exit(1)
+        }
+    };
     sp.success("Enviroment variables success!");
 
     let client = Rc::new(Client::new());
