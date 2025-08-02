@@ -6,6 +6,7 @@ pub struct Token {
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
+#[allow(dead_code)]
 pub enum SessionResponse {
     Success { session: Session },
     Error { error: u32, message: String },

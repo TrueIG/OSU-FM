@@ -84,10 +84,10 @@ impl LastFmService {
 
             match response {
                 SessionResponse::Success { session } => {
-                    return Ok(session.key.into());
+                    return Ok(session.key.into())
                 }
-                SessionResponse::Error { error, message } => {
-                    sleep(Duration::from_secs(2)).await;
+                SessionResponse::Error { .. } => {
+                    sleep(Duration::from_secs(2)).await
                 }
             }
         }
