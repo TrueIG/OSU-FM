@@ -20,7 +20,11 @@ pub struct LastFmService {
 }
 
 impl LastFmService {
-    pub fn new(client: Rc<Client>, api_key: Box<str>, shared_secret: Box<str>) -> Self {
+    pub fn new(
+        client: Rc<Client>,
+        api_key: Box<str>,
+        shared_secret: Box<str>,
+    ) -> Self {
         Self {
             client,
             api_key,
@@ -54,7 +58,9 @@ impl LastFmService {
         params.insert("api_sig".into(), api_sig.into());
     }
 
-    async fn get_session(&self) -> Result<Box<str>, Box<dyn std::error::Error>> {
+    async fn get_session(
+        &self,
+    ) -> Result<Box<str>, Box<dyn std::error::Error>> {
         let token = self.token.clone();
 
         let mut params: HashMap<Box<str>, Box<str>> = HashMap::from([
@@ -107,7 +113,9 @@ impl LastFmService {
         Ok(())
     }
 
-    async fn get_user_authorization(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn get_user_authorization(
+        &self,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let url = match &self.token {
             Some(token) => format!(
                 "http://www.last.fm/api/auth/?api_key={}&token={}",
@@ -123,7 +131,12 @@ impl LastFmService {
         Ok(())
     }
 
-    pub async fn scrobbe(&self, artist: &str, track: &str, sk: &str) -> Result<(), reqwest::Error> {
+    pub async fn scrobbe(
+        &self,
+        artist: &str,
+        track: &str,
+        sk: &str,
+    ) -> Result<(), reqwest::Error> {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
@@ -147,7 +160,9 @@ impl LastFmService {
         Ok(())
     }
 
-    pub async fn init(&mut self) -> Result<Box<str>, Box<dyn std::error::Error>> {
+    pub async fn init(
+        &mut self,
+    ) -> Result<Box<str>, Box<dyn std::error::Error>> {
         let _ = self.get_token().await;
         let _ = self.get_user_authorization().await;
         let response = self.get_session().await?;

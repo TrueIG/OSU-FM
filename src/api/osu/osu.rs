@@ -25,7 +25,9 @@ impl OsuService {
         }
     }
 
-    pub async fn get_auth_token(&self) -> Result<OAuthTokenResponse, reqwest::Error> {
+    pub async fn get_auth_token(
+        &self,
+    ) -> Result<OAuthTokenResponse, reqwest::Error> {
         let params = self.get_params();
 
         const AUTH_URL: &str = "https://osu.ppy.sh/oauth/token";
@@ -39,7 +41,10 @@ impl OsuService {
             .await
     }
 
-    pub async fn get_beatmap(&self, token: &str) -> Result<Option<Beatmap>, reqwest::Error> {
+    pub async fn get_beatmap(
+        &self,
+        token: &str,
+    ) -> Result<Option<Beatmap>, reqwest::Error> {
         let beatmap_url = format!(
             "https://osu.ppy.sh/api/v2/users/{}/scores/recent?limit=1",
             self.user_id

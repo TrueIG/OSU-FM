@@ -49,7 +49,10 @@ fn get_var(name: &str) -> Result<String, env::VarError> {
     })
 }
 
-pub fn create_config(sk: Box<str>, token: Box<str>) -> Result<Config, Box<dyn std::error::Error>> {
+pub fn create_config(
+    sk: Box<str>,
+    token: Box<str>,
+) -> Result<Config, Box<dyn std::error::Error>> {
     let config = Config {
         lastfm: LastfmConfig { sk },
         osu: OsuConfig {

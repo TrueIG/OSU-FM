@@ -40,7 +40,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     log::info!("Starting OSU-FM");
 
-    let mut sp = Spinner::new(spinners::Dots, "Reading environment variables...", None);
+    let mut sp =
+        Spinner::new(spinners::Dots, "Reading environment variables...", None);
     let vars = Vars::from_env()?;
     sp.success("Enviroment variables success!");
 
@@ -72,10 +73,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let mut configs: CF = if let Ok(content) = fs::read_to_string("config.json") {
+    let mut configs: CF = if let Ok(content) = fs::read_to_string("config.json")
+    {
         serde_json::from_str(&content)?
     } else {
-        let mut sp = Spinner::new(spinners::Dots, "Waiting user authorization...", Color::Blue);
+        let mut sp = Spinner::new(
+            spinners::Dots,
+            "Waiting user authorization...",
+            Color::Blue,
+        );
         let config = create_config(
             lastfm_service.init().await.unwrap(),
             osu_token.clone().into(),
@@ -88,7 +94,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     configs.osu.token = osu_token.into();
 
     let _ = write_config(&serde_json::to_string_pretty(&configs)?);
-    let _ = monitor_beatmap_updates(&osu_service, &mut lastfm_service, &mut configs).await;
+    let _ = monitor_beatmap_updates(
+        &osu_service,
+        &mut lastfm_service,
+        &mut configs,
+    )
+    .await;
 
     Ok(())
 }
@@ -99,8 +110,11 @@ async fn monitor_beatmap_updates(
     config: &mut CF,
 ) -> Result<(), Box<dyn std::error::Error>> {
     loop {
-        let mut spinner =
-            Spinner::new(spinners::Arrow3, "Waiting for new beatmaps...", Color::Blue);
+        let mut spinner = Spinner::new(
+            spinners::Arrow3,
+            "Waiting for new beatmaps...",
+            Color::Blue,
+        );
         match osu_service.get_beatmap(&config.osu.token).await {
             Ok(Some(beatmap)) if config.osu.last_track != Some(beatmap.id) => {
                 config.osu.last_track = Some(beatmap.id);
