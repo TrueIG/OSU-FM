@@ -7,6 +7,14 @@ pub enum OAuthTokenResponse {
     Error(OAuthTokenError),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum Ruleset {
+    Fruits,
+    Mania,
+    Osu,
+    Taiko,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OAuthTokenError {
     pub error: String,
@@ -21,13 +29,13 @@ pub struct OAuthTokenSuccess {
     pub access_token: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct BeatmapSet {
     pub artist_unicode: String,
     pub title_unicode: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Beatmap {
     pub beatmapset: BeatmapSet,
     pub created_at: String,

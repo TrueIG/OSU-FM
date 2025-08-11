@@ -122,8 +122,17 @@ async fn monitor_beatmap_updates(
             "Waiting for new beatmaps...",
             Color::Blue,
         );
-        match osu_service.get_beatmap(&config.osu.token).await {
-            Ok(Some(beatmap)) if config.osu.last_track != Some(beatmap.id) => {
+
+        let beatmap = osu_service
+            .get_beatmap(&config.osu.token)
+            .await
+            .unwrap()
+            .iter()
+            .max_by_key(|b| b.id)
+            .cloned();
+
+        if let Some(beatmap) = beatmap {
+            if config.osu.last_track != Some(beatmap.id) {
                 config.osu.last_track = Some(beatmap.id);
                 let _ = write_config(&serde_json::to_string_pretty(&config)?);
                 let _result = lastfm_service
@@ -141,10 +150,7 @@ async fn monitor_beatmap_updates(
                     &beatmap.beatmapset.title_unicode,
                 )
             }
-            Ok(_) => {}
-            Err(e) => eprintln!("{}", e),
         }
-
         sleep(Duration::from_secs(10)).await;
     }
 }
