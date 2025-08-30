@@ -5,6 +5,7 @@ use std::{
 };
 
 use api::{lastfm::lastfm::LastFmService, osu::osu::OsuService};
+use regex::Regex;
 
 use osu_fm::{create_config, write_config, Config as CF, Vars};
 use reqwest::Client;
@@ -116,6 +117,17 @@ async fn monitor_beatmap_updates(
     lastfm_service: &mut LastFmService,
     config: &mut CF,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let content = fs::read_to_string("config.json").unwrap();
+    let result: CF = serde_json::from_str(&content)?;
+    let black_list_words = result
+        .osu
+        .regex
+        .iter()
+        .map(|s| regex::escape(s))
+        .collect::<Vec<_>>()
+        .join("|");
+    let re = Regex::new(&format!("(?i){}", black_list_words)).unwrap();
+
     loop {
         let mut spinner = Spinner::new(
             spinners::Arrow3,
@@ -138,7 +150,7 @@ async fn monitor_beatmap_updates(
                 let _result = lastfm_service
                     .scrobbe(
                         &beatmap.beatmapset.artist_unicode,
-                        &beatmap.beatmapset.title_unicode,
+                        &re.replace_all(&beatmap.beatmapset.title_unicode, ""),
                         &config.lastfm.sk,
                     )
                     .await;
