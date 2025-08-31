@@ -21,9 +21,9 @@ pub struct Config {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OsuConfig {
     pub last_track: Option<i64>,
-
     pub token: Box<str>,
     pub regex: Vec<String>,
+    pub blacklist: Vec<i64>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -73,6 +73,7 @@ pub fn create_config(
             token,
             last_track: None,
             regex: Vec::new(),
+            blacklist: Vec::new(),
         },
     };
     let data = serde_json::to_string_pretty(&config)?;

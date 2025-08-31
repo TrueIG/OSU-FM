@@ -135,19 +135,20 @@ async fn monitor_beatmap_updates(
             Color::Blue,
         );
 
-        let beatmap = osu_service
+        if let Some(beatmap) = osu_service
             .get_beatmap(&config.osu.token)
             .await
             .unwrap()
-            .iter()
+            .into_iter()
             .max_by_key(|b| b.id)
-            .cloned();
-
-        if let Some(beatmap) = beatmap {
-            if config.osu.last_track != Some(beatmap.id) {
+        {
+            if !config.osu.blacklist.contains(&beatmap.id)
+                && config.osu.last_track != Some(beatmap.id)
+            {
                 config.osu.last_track = Some(beatmap.id);
                 let _ = write_config(&serde_json::to_string_pretty(&config)?);
-                let _result = lastfm_service
+
+                let _ = lastfm_service
                     .scrobbe(
                         &beatmap.beatmapset.artist_unicode,
                         &re.replace_all(&beatmap.beatmapset.title_unicode, ""),
@@ -160,9 +161,10 @@ async fn monitor_beatmap_updates(
                     " Artist: {}\n󰎇 Title: {}",
                     &beatmap.beatmapset.artist_unicode,
                     &beatmap.beatmapset.title_unicode,
-                )
+                );
             }
         }
+
         sleep(Duration::from_secs(10)).await;
     }
 }
