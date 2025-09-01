@@ -146,22 +146,38 @@ async fn monitor_beatmap_updates(
                 && config.osu.last_track != Some(beatmap.id)
             {
                 config.osu.last_track = Some(beatmap.id);
+                let mut artist = beatmap.beatmapset.artist_unicode;
+                let mut title = beatmap.beatmapset.title_unicode;
+
+                if let Some(index) = config
+                    .osu
+                    .beatmap_override
+                    .iter()
+                    .position(|b| b.id == beatmap.id)
+                {
+                    title = config.osu.beatmap_override[index]
+                        .beatmapset
+                        .title_unicode
+                        .clone();
+
+                    artist = config.osu.beatmap_override[index]
+                        .beatmapset
+                        .artist_unicode
+                        .clone();
+                }
+
                 let _ = write_config(&serde_json::to_string_pretty(&config)?);
 
                 let _ = lastfm_service
                     .scrobbe(
-                        &beatmap.beatmapset.artist_unicode,
-                        &re.replace_all(&beatmap.beatmapset.title_unicode, ""),
+                        &artist,
+                        &re.replace_all(&title, ""),
                         &config.lastfm.sk,
                     )
                     .await;
 
                 spinner.info("New Scrobbe!");
-                log::info!(
-                    " Artist: {}\n󰎇 Title: {}",
-                    &beatmap.beatmapset.artist_unicode,
-                    &beatmap.beatmapset.title_unicode,
-                );
+                log::info!("\n Artist: {}\n󰎇 Title: {}", &artist, &title,);
             }
         }
 

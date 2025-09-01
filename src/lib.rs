@@ -1,7 +1,10 @@
-use dotenv::dotenv;
+use crate::api::osu::models::BeatmapSet;
+
 use serde::{Deserialize, Serialize};
 use std::{env, fs::File, io::Write};
 use thiserror::Error;
+
+pub mod api;
 
 #[derive(Debug)]
 pub struct Vars {
@@ -24,6 +27,7 @@ pub struct OsuConfig {
     pub token: Box<str>,
     pub regex: Vec<String>,
     pub blacklist: Vec<i64>,
+    pub beatmap_override: Vec<BeatmapOverride>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -37,6 +41,12 @@ pub enum EnvVarError {
     MissingVar(String, #[source] env::VarError),
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BeatmapOverride {
+    pub id: i64,
+    pub beatmapset: BeatmapSet,
+}
+
 impl EnvVarError {
     pub fn name(&self) -> &str {
         match self {
@@ -44,7 +54,6 @@ impl EnvVarError {
         }
     }
 }
-
 impl Vars {
     pub fn from_env() -> Result<Self, EnvVarError> {
         dotenv::dotenv().ok();
@@ -74,6 +83,7 @@ pub fn create_config(
             last_track: None,
             regex: Vec::new(),
             blacklist: Vec::new(),
+            beatmap_override: Vec::new(),
         },
     };
     let data = serde_json::to_string_pretty(&config)?;
