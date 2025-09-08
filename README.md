@@ -12,6 +12,11 @@
 
 The project is a recreation of the old [Osu-fm](https://github.com/TrueIG/OSU-FM-TS), originally made in TypeScript, now rewritten in **Rust**.
 
+## Features
+- **Beatmap Blacklist:** Blacklist certain beatmaps from scrobbling.
+- **Beatmap config:** Edit name on a scrobble from a certain beatmap.
+- **Beatmap title clean:** Remove keywords like "nightcore", "cut ver.", "speed up" etc.
+
 ## Installation
 
 ### Install Rust 
